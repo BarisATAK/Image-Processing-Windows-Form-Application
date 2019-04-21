@@ -140,11 +140,11 @@ BYTE* Labeling(BYTE* image, int w, int	h) {
 
 		(1->row_min)		(2->col_min)				(3->col_max)					(4->row_max)
 		-------------		
-							-										-
-							-										-										--->>> For the all labels.
-							-										-
-							-										-
-																						--------------
+					-							-
+					-							-						--->>> For the all labels.
+					-							-
+					-							-
+																--------------
 		
 		*/
 
@@ -237,9 +237,9 @@ BYTE* K_Means(BYTE* image, int* hist, int w, int h) {
 BYTE* Dilation(BYTE* image, int w, int h) {
 	BYTE* dilated_image = new BYTE[w*h];
 	int mask_value = 0;
-	int dilation_mask[9] = { 1,1,1,
-							 1,1,1,
-							 1,1,1 };
+	int dilation_mask[9] = {0,1,0,
+				1,1,1
+				0,1,0 };
 
 	for (int i = 0; i < w*h; i++) {
 		dilated_image[i] = BYTE(0);
@@ -282,9 +282,9 @@ BYTE* Dilation(BYTE* image, int w, int h) {
 BYTE* Erosion(BYTE* image, int w, int h) {
 	BYTE* erosion_image = new BYTE[w*h];
 	int count_1 = 0;
-	int mask[9] = { 1,1,1,
-					1,1,1,
-					1,1,1 };
+	int mask[9] = { 0,1,0,
+			1,1,1,
+			0,1,0 };
 
 	for (int i = 0; i < 9; i++)
 		if (mask[i] == 1)
