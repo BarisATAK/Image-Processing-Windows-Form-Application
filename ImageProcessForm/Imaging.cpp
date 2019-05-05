@@ -1,11 +1,14 @@
-﻿#include <Windows.h>
+#include <Windows.h>
 #include <windows.system.h>
 #include "atlstr.h"
 #include "Imaging.h"
+#include "math.h"
 
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+
+#define pi 3.145
 
 BYTE* Frame(BYTE* image, int w, int h) {
 	BYTE* frame_image = new BYTE[(w + 2)*(h + 2)];
@@ -23,13 +26,98 @@ BYTE* Frame(BYTE* image, int w, int h) {
 	}
 
 	return frame_image;
-
 }
+BYTE* Gradient_Magnitude(BYTE* vertical_image, BYTE* horizontal_image, int w, int h) {
+	BYTE* gra_mag = new BYTE[w*h];
+
+	for (int p = 0; p < w*h; p++) // Calculate the Gradiant magnitude 
+		gra_mag[p] = sqrt(pow(vertical_image[p], 2) + pow(horizontal_image[p], 2));
+	
+		return gra_mag;
+}
+BYTE* Non_Max_Suppression(BYTE* gradient_magnitude, BYTE* vertical_image, BYTE* horizontal_image, int w, int h) {
+	BYTE* gra_mag = new BYTE[w*h];
+	double* edge_degrees = new double[w*h];
+
+	for (int i = 0; i < w*h; i++)
+		gra_mag[i] = gradient_magnitude[i];
+
+	for (int p = 0; p < w*h; p++) // Calculate the Edge degrees
+		if (vertical_image[p] != 0) // Zero division error !!!
+			edge_degrees[p] = atan(horizontal_image[p] / vertical_image[p]) * 180 / pi; //result * 180 / pi --> Convert radian to degree.
+		else
+			edge_degrees[p] = 0;
+
+	// Non-max suppression
+	for (int y = 1; y < h - 1; y++)
+		for (int x = 1; x < w - 1; x++)
+			// Angel(0) or Angel(180) --> same direction.
+			if ((edge_degrees[y*w + x] >= 0 && edge_degrees[y*w + x] <= 22.5) || (edge_degrees[y*w + x] >= 157.5 && edge_degrees[y*w + x] <= 180))
+				if (gradient_magnitude[y*w + x] >= gradient_magnitude[y*w + (x - 1)] && gradient_magnitude[y*w + x] >= gradient_magnitude[y*w + (x + 1)]);
+				else
+					gra_mag[y*w + x] = BYTE(0);
+	// Angel(45) 
+			else if ((edge_degrees[y*w + x] > 22.5 && edge_degrees[y*w + x] <= 67.5))
+				if (gradient_magnitude[y*w + x] >= gradient_magnitude[(y - 1)*w + (x + 1)] && gradient_magnitude[y*w + x] >= gradient_magnitude[(y + 1)*w + (x - 1)]);
+				else
+					gra_mag[y*w + x] = BYTE(0);
+	// Angel(90) 
+			else if ((edge_degrees[y*w + x] > 67.5 && edge_degrees[y*w + x] <= 112.5))
+				if (gradient_magnitude[y*w + x] >= gradient_magnitude[(y - 1)*w + x] && gradient_magnitude[y*w + x] >= gradient_magnitude[(y + 1)*w + x]);
+				else
+					gra_mag[y*w + x] = BYTE(0);
+	// Angel(135) 
+			else if ((edge_degrees[y*w + x] > 112.5 && edge_degrees[y*w + x] < 157.5))
+				if (gradient_magnitude[y*w + x] >= gradient_magnitude[(y - 1)*w + (x - 1)] && gradient_magnitude[y*w + x] >= gradient_magnitude[(y + 1)*w + (x + 1)]);
+				else
+					gra_mag[y*w + x] = BYTE(0);
+
+	return gra_mag;
+}
+BYTE* Double_Threshold(BYTE* n_m_suppression, int w, int h) {
+	//THRESHOL DA SIKINTI VAR!!!!!!!!!!!!!!! (Sabit deger değiştir.)
+	BYTE* d_t = new BYTE[w*h];
+
+	for (int p = 0; p < w*h; p++)
+		if (n_m_suppression[p] >= BYTE(25) && n_m_suppression[p] < BYTE(50))
+			d_t[p] = BYTE(80);  // Weak
+		else if (n_m_suppression[p] >= 50)
+			d_t[p] = BYTE(255); // Strong
+		else
+			d_t[p] = BYTE(0);
+
+	return d_t;
+}
+BYTE* Canny_Image(BYTE* double_threshold, int w, int h) {
+	BYTE* hysteresis = new BYTE[w*h];
+
+	// Hysteresis 
+	for (int y = 1; y < h - 1; y++)
+		for (int x = 1; x < w - 1; x++)
+			if (double_threshold[y*w + x] == BYTE(80))
+				for (int i = -1; i < 2; i++)
+					for (int j = -1; j < 2; j++) {
+						if (double_threshold[(y + i)*w + (x + j)] == BYTE(255)) {
+							hysteresis[y*w + x] = BYTE(255);
+							break;
+						}
+						else if (i + j == 2) { // If hasn't any 255 value.
+							hysteresis[y*w + x] = BYTE(0);
+						}
+					}
+			else
+				hysteresis[y*w + x] = double_threshold[y*w + x];
+
+	return hysteresis;
+}
+
 BYTE* Reverse(BYTE* image, int w, int h) {
 	BYTE* reverse_image = new BYTE[w*h];
+	
 	for (int y = 0; y < h; y++)
 		for (int x = 0; x < w; x++)
 			reverse_image[y*w + x] = image[(h - 1 - y)*w + (w - 1 - x)];
+	
 	delete image;
 	return reverse_image;
 }
@@ -140,11 +228,11 @@ BYTE* Labeling(BYTE* image, int w, int	h) {
 
 		(1->row_min)		(2->col_min)				(3->col_max)					(4->row_max)
 		-------------		
-					-							-
-					-							-						--->>> For the all labels.
-					-							-
-					-							-
-																--------------
+							-										-
+							-										-										--->>> For the all labels.
+							-										-
+							-										-
+																						--------------
 		
 		*/
 
@@ -237,9 +325,9 @@ BYTE* K_Means(BYTE* image, int* hist, int w, int h) {
 BYTE* Dilation(BYTE* image, int w, int h) {
 	BYTE* dilated_image = new BYTE[w*h];
 	int mask_value = 0;
-	int dilation_mask[9] = {0,1,0,
-				1,1,1
-				0,1,0 };
+	int dilation_mask[9] = { 1,1,1,
+							 1,1,1,
+							 1,1,1 };
 
 	for (int i = 0; i < w*h; i++) {
 		dilated_image[i] = BYTE(0);
@@ -282,9 +370,9 @@ BYTE* Dilation(BYTE* image, int w, int h) {
 BYTE* Erosion(BYTE* image, int w, int h) {
 	BYTE* erosion_image = new BYTE[w*h];
 	int count_1 = 0;
-	int mask[9] = { 0,1,0,
-			1,1,1,
-			0,1,0 };
+	int mask[9] = { 1,1,1,
+					1,1,1,
+					1,1,1 };
 
 	for (int i = 0; i < 9; i++)
 		if (mask[i] == 1)
@@ -388,13 +476,13 @@ BYTE* Convolution(BYTE* image, int w, int h,double* mask,int mask_size) {
 				}
 			}
 			if (y < h && x < w) {
-				new_image[y * w + x] = (int)abs(total / 2);
+				new_image[y * w + x] = fabs(total);
 				total = 0;
 			}
 		}
 	}
 
-	delete image;
+	//delete image;
 	delete conv_image;
 	return new_image;
 }
