@@ -1,6 +1,10 @@
 #pragma once
 #include <windows.h>
 BYTE* Frame(BYTE* image, int w, int h);
+BYTE* Gradient_Magnitude(BYTE* vertical_image, BYTE* horizontal_image, int w, int h);
+BYTE* Non_Max_Suppression(BYTE* gradient_magnitude, BYTE* vertical_image, BYTE* horizontal_image, int w, int h);
+BYTE* Double_Threshold(BYTE* n_m_suppression, int w, int h);
+BYTE* Canny_Image(BYTE* double_threshold, int w, int h);
 BYTE* Labeling(BYTE* image, int w, int h);
 BYTE* K_Means(BYTE* image, int* hist, int w, int h);
 BYTE* Dilation(BYTE* image, int w, int h);
