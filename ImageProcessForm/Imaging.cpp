@@ -18,7 +18,7 @@ BYTE* Frame(BYTE* image, int w, int h) {
 			if (y == 0 || y == h + 1)
 				frame_image[y*(w + 2) + x] = 0;
 			else
-				if (x == 0 || x == w + 1)
+				if(x == 0 || x == w + 1)
 					frame_image[y*(w + 2) + x] = 0;
 				else
 					frame_image[y*(w + 2) + x] = image[(y - 1)*w + (x - 1)];
@@ -27,47 +27,52 @@ BYTE* Frame(BYTE* image, int w, int h) {
 
 	return frame_image;
 }
+
 BYTE* Gradient_Magnitude(BYTE* vertical_image, BYTE* horizontal_image, int w, int h) {
-	BYTE* gra_mag = new BYTE[w*h];
+	BYTE* gra_magn = new BYTE[w*h];
 
 	for (int p = 0; p < w*h; p++) // Calculate the Gradiant magnitude 
-		gra_mag[p] = sqrt(pow(vertical_image[p], 2) + pow(horizontal_image[p], 2));
+		gra_magn[p] = (BYTE)sqrt(pow(vertical_image[p], 2) + pow(horizontal_image[p], 2));
 	
-		return gra_mag;
+		return gra_magn;
 }
-BYTE* Non_Max_Suppression(BYTE* gradient_magnitude, BYTE* vertical_image, BYTE* horizontal_image, int w, int h) {
-	BYTE* gra_mag = new BYTE[w*h];
+double* Edge_Degrees(BYTE* vertical_image, BYTE* horizontal_image, int w, int h) {
 	double* edge_degrees = new double[w*h];
+	for (int p = 0; p < w*h; p++) // Calculate the Edge degrees
+		if (vertical_image[p] != 0) // Zero division error !!!
+			edge_degrees[p] = atan(horizontal_image[p] / vertical_image[p]) * 180 / pi; //result * 180 / pi--> Convert radian to degree.
+		else
+			edge_degrees[p] = 0;
+
+	return edge_degrees;
+}
+
+BYTE* Non_Max_Suppression(BYTE* gradient_magnitude,double* edge_degrees, int w, int h) {
+	BYTE* gra_mag = new BYTE[w*h];
 
 	for (int i = 0; i < w*h; i++)
 		gra_mag[i] = gradient_magnitude[i];
-
-	for (int p = 0; p < w*h; p++) // Calculate the Edge degrees
-		if (vertical_image[p] != 0) // Zero division error !!!
-			edge_degrees[p] = atan(horizontal_image[p] / vertical_image[p]) * 180 / pi; //result * 180 / pi --> Convert radian to degree.
-		else
-			edge_degrees[p] = 0;
 
 	// Non-max suppression
 	for (int y = 1; y < h - 1; y++)
 		for (int x = 1; x < w - 1; x++)
 			// Angel(0) or Angel(180) --> same direction.
-			if ((edge_degrees[y*w + x] >= 0 && edge_degrees[y*w + x] <= 22.5) || (edge_degrees[y*w + x] >= 157.5 && edge_degrees[y*w + x] <= 180))
+			if ((edge_degrees[y*w + x] >= 0 && edge_degrees[y*w + x] < 22.5) || (edge_degrees[y*w + x] >= 157.5 && edge_degrees[y*w + x] <= 180))
 				if (gradient_magnitude[y*w + x] >= gradient_magnitude[y*w + (x - 1)] && gradient_magnitude[y*w + x] >= gradient_magnitude[y*w + (x + 1)]);
 				else
 					gra_mag[y*w + x] = BYTE(0);
-	// Angel(45) 
-			else if ((edge_degrees[y*w + x] > 22.5 && edge_degrees[y*w + x] <= 67.5))
+			// Angel(45) 
+			else if ((edge_degrees[y*w + x] >= 22.5 && edge_degrees[y*w + x] < 67.5))
 				if (gradient_magnitude[y*w + x] >= gradient_magnitude[(y - 1)*w + (x + 1)] && gradient_magnitude[y*w + x] >= gradient_magnitude[(y + 1)*w + (x - 1)]);
 				else
 					gra_mag[y*w + x] = BYTE(0);
-	// Angel(90) 
-			else if ((edge_degrees[y*w + x] > 67.5 && edge_degrees[y*w + x] <= 112.5))
+			// Angel(90) 
+			else if ((edge_degrees[y*w + x] >= 67.5 && edge_degrees[y*w + x] < 112.5))
 				if (gradient_magnitude[y*w + x] >= gradient_magnitude[(y - 1)*w + x] && gradient_magnitude[y*w + x] >= gradient_magnitude[(y + 1)*w + x]);
 				else
 					gra_mag[y*w + x] = BYTE(0);
-	// Angel(135) 
-			else if ((edge_degrees[y*w + x] > 112.5 && edge_degrees[y*w + x] < 157.5))
+			// Angel(135) 
+			else if ((edge_degrees[y*w + x] >= 112.5 && edge_degrees[y*w + x] < 157.5))
 				if (gradient_magnitude[y*w + x] >= gradient_magnitude[(y - 1)*w + (x - 1)] && gradient_magnitude[y*w + x] >= gradient_magnitude[(y + 1)*w + (x + 1)]);
 				else
 					gra_mag[y*w + x] = BYTE(0);
@@ -77,11 +82,11 @@ BYTE* Non_Max_Suppression(BYTE* gradient_magnitude, BYTE* vertical_image, BYTE* 
 BYTE* Double_Threshold(BYTE* n_m_suppression, int w, int h) {
 	//THRESHOL DA SIKINTI VAR!!!!!!!!!!!!!!! (Sabit deger değiştir.)
 	BYTE* d_t = new BYTE[w*h];
-
+	
 	for (int p = 0; p < w*h; p++)
-		if (n_m_suppression[p] >= BYTE(25) && n_m_suppression[p] < BYTE(50))
+		if (n_m_suppression[p] >= BYTE(25) && n_m_suppression[p] < BYTE(35))
 			d_t[p] = BYTE(80);  // Weak
-		else if (n_m_suppression[p] >= 50)
+		else if (n_m_suppression[p] >= BYTE(35))
 			d_t[p] = BYTE(255); // Strong
 		else
 			d_t[p] = BYTE(0);
@@ -111,6 +116,45 @@ BYTE* Canny_Image(BYTE* double_threshold, int w, int h) {
 	return hysteresis;
 }
 
+BYTE* Hough_Transform(BYTE* canny_image, double* edge_degrees, int w, int h) {
+	
+	double accu_size = sqrt(pow(w, 2) + pow(h, 2)) * 360;
+	int* accumulator = new int[accu_size];
+	BYTE* accu_image = new BYTE[accu_size];
+
+	for (int i = 0; i < accu_size; i++)
+		accumulator[i] = 0;
+
+	for (int y = 0; y < h; y++) {
+		for (int x = 0; x < w; x++) {
+			if (canny_image[y*w + x] != BYTE(255)) {
+				continue;
+			}
+			else {
+				for (int angle = -180; angle < 180; angle++) {
+					double r = y * sin((double)angle*pi / 180) + x * cos((double)angle*pi / 180); // convert DEGREE to RADIAN.
+					(r < 0) ? r = fabs(r) : r;
+					int round_r = round(r);
+					accumulator[round_r * 360 + (angle+180)]++;
+				}
+			}
+		}
+	}
+
+	for (int a = 0; a < accu_size; a++)
+		accu_image[a] = (BYTE)accumulator[a];
+
+	/*
+		double max = accumulator[0];
+
+	for (int a = 0; a < accu_size; a++) 
+		if (accumulator[a] > max)
+			max = accumulator[a];
+
+	*/
+
+	return accu_image;
+}
 BYTE* Reverse(BYTE* image, int w, int h) {
 	BYTE* reverse_image = new BYTE[w*h];
 	
@@ -737,7 +781,7 @@ bool SaveBMP(BYTE* Buffer, int width, int height, long paddedsize, LPCTSTR bmpfi
 		CloseHandle(file);
 		return false;
 	}
-	// write image data
+	// write image dataf
 	if (WriteFile(file, Buffer, paddedsize, &bwritten, NULL) == false) {
 		CloseHandle(file);
 		return false;
@@ -748,3 +792,4 @@ bool SaveBMP(BYTE* Buffer, int width, int height, long paddedsize, LPCTSTR bmpfi
 
 	return true;
 } // SaveBMP
+
