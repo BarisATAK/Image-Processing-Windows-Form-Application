@@ -3,10 +3,10 @@
 #include "Imaging.h"
 #include "atlstr.h"
 
-#define x1 50
-#define y1 50
-#define x4 200
-#define y4 200
+#define x1 40
+#define y1 180
+#define x4 60
+#define y4 220
 
 namespace ImageProcessForm {
 
@@ -106,11 +106,13 @@ namespace ImageProcessForm {
 
 	private: System::Windows::Forms::PictureBox^  pictureBox3;
 	private: System::Windows::Forms::Label^  label1;
-
 	private: System::Windows::Forms::Label^  label2;
-	private: System::Windows::Forms::Label^  label5;
-	private: System::Windows::Forms::Label^  label4;
 	private: System::Windows::Forms::Label^  label3;
+	private: System::Windows::Forms::Label^  label4;
+	private: System::Windows::Forms::Label^  label5;
+	private: System::Windows::Forms::Label^  label6;
+
+
 
 
 
@@ -171,6 +173,7 @@ namespace ImageProcessForm {
 			this->label3 = (gcnew System::Windows::Forms::Label());
 			this->label4 = (gcnew System::Windows::Forms::Label());
 			this->label5 = (gcnew System::Windows::Forms::Label());
+			this->label6 = (gcnew System::Windows::Forms::Label());
 			this->panel1->SuspendLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox4))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->BeginInit();
@@ -293,7 +296,7 @@ namespace ImageProcessForm {
 			legend2->TitleForeColor = System::Drawing::Color::Transparent;
 			legend2->TitleSeparatorColor = System::Drawing::Color::Transparent;
 			this->k_means_histogram->Legends->Add(legend2);
-			this->k_means_histogram->Location = System::Drawing::Point(714, 396);
+			this->k_means_histogram->Location = System::Drawing::Point(695, 396);
 			this->k_means_histogram->Name = L"k_means_histogram";
 			this->k_means_histogram->Palette = System::Windows::Forms::DataVisualization::Charting::ChartColorPalette::None;
 			this->k_means_histogram->RightToLeft = System::Windows::Forms::RightToLeft::Yes;
@@ -322,11 +325,6 @@ namespace ImageProcessForm {
 			this->panel2->Controls->Add(this->k_means);
 			this->panel2->Controls->Add(this->conv);
 			this->panel2->Controls->Add(this->d_line);
-			this->Controls->Add(this->label1);
-			this->Controls->Add(this->label2);
-			this->Controls->Add(this->label3);
-			this->Controls->Add(this->label4);
-			this->Controls->Add(this->label5);
 			this->panel2->Location = System::Drawing::Point(0, -2);
 			this->panel2->Margin = System::Windows::Forms::Padding(4);
 			this->panel2->Name = L"panel2";
@@ -591,6 +589,16 @@ namespace ImageProcessForm {
 			this->label5->TabIndex = 19;
 			this->label5->Visible = false;
 			// 
+			// label6
+			// 
+			this->label6->AutoSize = true;
+			this->label6->ForeColor = System::Drawing::SystemColors::ActiveCaptionText;
+			this->label6->Location = System::Drawing::Point(1113, 702);
+			this->label6->Name = L"label6";
+			this->label6->Size = System::Drawing::Size(0, 22);
+			this->label6->TabIndex = 20;
+			this->label6->Visible = false;
+			// 
 			// ImagesProcessing
 			// 
 			this->AccessibleDescription = L"";
@@ -599,6 +607,12 @@ namespace ImageProcessForm {
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->BackColor = System::Drawing::Color::WhiteSmoke;
 			this->ClientSize = System::Drawing::Size(1713, 816);
+			this->Controls->Add(this->label6);
+			this->Controls->Add(this->label1);
+			this->Controls->Add(this->label2);
+			this->Controls->Add(this->label3);
+			this->Controls->Add(this->label4);
+			this->Controls->Add(this->label5);
 			this->Controls->Add(this->panel2);
 			this->Controls->Add(this->k_means_histogram);
 			this->Controls->Add(this->hist);
@@ -613,7 +627,7 @@ namespace ImageProcessForm {
 			this->Name = L"ImagesProcessing";
 			this->SizeGripStyle = System::Windows::Forms::SizeGripStyle::Hide;
 			this->Tag = L"";
-			this->Text = L"d";
+			this->Text = L"Image Processing Form";
 			this->TransparencyKey = System::Drawing::Color::LightPink;
 			this->WindowState = System::Windows::Forms::FormWindowState::Maximized;
 			this->Load += gcnew System::EventHandler(this, &ImagesProcessing::ImagesProcessing_Load);
@@ -665,6 +679,7 @@ private: System::Void draw_line_Click(System::Object^  sender, System::EventArgs
 	label3->Text = "";
 	label4->Text = "";
 	label5->Text = "";
+	label6->Text = "";
 
 	this->Controls->Remove(pictureBox2);
 	this->Controls->Remove(pictureBox3);
@@ -724,6 +739,7 @@ private: System::Void edge_image_Click(System::Object^  sender, System::EventArg
 	label3->Text = "Non-max Suppression";
 	label4->Text = "Double Threshold";
 	label5->Text = "Canny Image";
+	label6->Text = "Hough Transform";
 
 	if (convolution_dialog->ShowDialog() == System::Windows::Forms::DialogResult::OK) {
 		str   = convolution_dialog->FileName;
@@ -735,6 +751,7 @@ private: System::Void edge_image_Click(System::Object^  sender, System::EventArg
 			label3->Visible = true;
 			label4->Visible = true;
 			label5->Visible = true;
+			label6->Visible = true;
 			hist->Visible = false;
 			k_means_histogram->Visible = false;
 		}
@@ -770,15 +787,15 @@ private: System::Void edge_image_Click(System::Object^  sender, System::EventArg
 	};
 
 	double vertical[9] = {
-			   	 1,0,-1,
+			    1,0,-1,
 				1,0,-1,
-			    	1,0,-1
+			    1,0,-1
 	};
 
-	double horizantal[9] = {
+	double horizontal[9] = {
 				1,1,1,
 				0,0,0,
-			   	-1,-1,-1
+			   -1,-1,-1
 	};
 
 
@@ -818,40 +835,58 @@ private: System::Void edge_image_Click(System::Object^  sender, System::EventArg
 	};
 
 	int* histogram = Histogram(raw_intensity, Width, Height);
-	BYTE* gaussian = Convolution(raw_intensity, Width, Height, kernel_7, 7);
-	BYTE* vertical_image = Convolution(gaussian, Width, Height, vertical, 3);
-	BYTE* horizontal_image = Convolution(gaussian, Width, Height, horizantal, 3);
+	//BYTE* gaussian = Convolution(raw_intensity, Width, Height, kernel_7, 7);
+	//BYTE* k_means = K_Means(raw_intensity, histogram, Width, Height);
+	BYTE* vertical_image = Convolution(raw_intensity, Width, Height, vertical, 3);
+	BYTE* horizontal_image = Convolution(raw_intensity, Width, Height, horizontal, 3);
 	BYTE* gradient = Gradient_Magnitude(vertical_image, horizontal_image, Width, Height);
-	BYTE* n_m_suppression = Non_Max_Suppression(gradient, vertical_image, horizontal_image, Width, Height);
+	double* edge_degrees = Edge_Degrees(vertical_image, horizontal_image, Width, Height);
+	BYTE* n_m_suppression = Non_Max_Suppression(gradient, edge_degrees, Width, Height);
 	BYTE* d_threshold = Double_Threshold(n_m_suppression, Width, Height);
 	BYTE* canny = Canny_Image(d_threshold, Width, Height);	
+	BYTE* hough_image = Hough_Transform(canny, edge_degrees, Width, Height);
+
+	int accu_size = sqrt(pow(Width, 2) + pow(Height, 2));
 
 	Bitmap^ surface2 = gcnew Bitmap(Width, Height);
 	Bitmap^ surface3 = gcnew Bitmap(Width, Height);
 	Bitmap^ surface4 = gcnew Bitmap(Width, Height);
 	Bitmap^ surface5 = gcnew Bitmap(Width, Height);
+	Bitmap^ surface6 = gcnew Bitmap(360, accu_size);
 
 	pictureBox2->Image = surface2;
 	pictureBox3->Image = surface3;
 	pictureBox4->Image = surface4;
 	pictureBox5->Image = surface5;
+	pictureBox6->Image = surface6;
 
-	Color col2,col3,col4,col5;
+	Color col2, col3, col4, col5, col6;
 	for (int row = 0; row < Height; row++)
 		for (int column = 0; column < Width; column++) {
 			col2 = Color::FromArgb(gradient[row*Width + column], gradient[row*Width + column], gradient[row*Width + column]);//RGB değerler atanır.
 			col3 = Color::FromArgb(n_m_suppression[row*Width + column], n_m_suppression[row*Width + column], n_m_suppression[row*Width + column]);//RGB değerler atanır.
 			col4 = Color::FromArgb(d_threshold[row*Width + column], d_threshold[row*Width + column], d_threshold[row*Width + column]);//RGB değerler atanır.
 			col5 = Color::FromArgb(canny[row*Width + column], canny[row*Width + column], canny[row*Width + column]);//RGB değerler atanır.
+			//col6 = Color::FromArgb(hough_image[row*Width + column], hough_image[row*Width + column], hough_image[row*Width + column]);//RGB değerler atanır.
 
 			surface2->SetPixel(column, row, col2);
 			surface3->SetPixel(column, row, col3);
 			surface4->SetPixel(column, row, col4);
 			surface5->SetPixel(column, row, col5);
+			//surface6->SetPixel(column, row, col6);
 
 
 		}
 
+
+
+	for (int a = 0; a < accu_size; a++) {
+		for (int k = 0; k < 360; k++) {
+			col6 = Color::FromArgb(hough_image[a*360 + k], hough_image[a * 360 + k], hough_image[a * 360 + k]);//RGB değerler atanır.
+			surface6->SetPixel(k, a, col6);
+
+		}
+	}
 	this->pictureBox1->ImageLocation = convolution_dialog->FileName;
 }
 
@@ -864,6 +899,7 @@ private: System::Void conv_Click(System::Object^  sender, System::EventArgs^  e)
 			 label3->Text = "";
 			 label4->Text = "";
 			 label5->Text = "";
+			 label6->Text = "";
 
 			 Controls->Remove(pictureBox2);
 			 Controls->Remove(pictureBox3);
@@ -969,6 +1005,7 @@ private: System::Void k_means_Click(System::Object^  sender, System::EventArgs^ 
 	label3->Text = "";
 	label4->Text = "";
 	label5->Text = "";
+	label6->Text = "";
 
 	Controls->Remove(pictureBox2);
 	Controls->Remove(pictureBox3);
@@ -1039,6 +1076,7 @@ private: System::Void Not_Click(System::Object^  sender, System::EventArgs^  e) 
 	label3->Text = "";
 	label4->Text = "";
 	label5->Text = "";
+	label6->Text = "";
 
 	this->Controls->Remove(pictureBox2);
 	this->Controls->Remove(pictureBox3);
@@ -1089,6 +1127,7 @@ private: System::Void reverse_button_Click(System::Object^  sender, System::Even
 	label3->Text = "";
 	label4->Text = "";
 	label5->Text = "";
+	label6->Text = "";
 
 	this->Controls->Remove(pictureBox2);
 	this->Controls->Remove(pictureBox3);
@@ -1138,6 +1177,7 @@ private: System::Void bounding_box_click(System::Object^  sender, System::EventA
 	label3->Text = "";
 	label4->Text = "";
 	label5->Text = "";
+	label6->Text = "";
 
 	this->Controls->Remove(pictureBox2);
 	this->Controls->Remove(pictureBox3);
@@ -1211,6 +1251,7 @@ private: System::Void zoom_click(System::Object^  sender, System::EventArgs^  e)
 	label3->Text = "";
 	label4->Text = "";
 	label5->Text = "";
+	label6->Text = "";
 
 	this->Controls->Remove(pictureBox2);
 	this->Controls->Remove(pictureBox3);
@@ -1278,6 +1319,7 @@ private: System::Void dilation_click_Click(System::Object^  sender, System::Even
 	label3->Text = "";
 	label4->Text = "";
 	label5->Text = "";
+	label6->Text = "";
 
 	this->Controls->Remove(pictureBox2);
 	this->Controls->Remove(pictureBox3);
@@ -1338,6 +1380,7 @@ private: System::Void erosion_click_Click(System::Object^  sender, System::Event
 	label3->Text = "";
 	label4->Text = "";
 	label5->Text = "";
+	label6->Text = "";
 
 	this->Controls->Remove(pictureBox2);
 	this->Controls->Remove(pictureBox3);
