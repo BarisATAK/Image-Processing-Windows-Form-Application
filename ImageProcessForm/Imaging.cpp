@@ -80,13 +80,12 @@ BYTE* Non_Max_Suppression(BYTE* gradient_magnitude,double* edge_degrees, int w, 
 	return gra_mag;
 }
 BYTE* Double_Threshold(BYTE* n_m_suppression, int w, int h) {
-	//THRESHOL DA SIKINTI VAR!!!!!!!!!!!!!!! (Sabit deger değiştir.)
 	BYTE* d_t = new BYTE[w*h];
 	
 	for (int p = 0; p < w*h; p++)
-		if (n_m_suppression[p] >= BYTE(25) && n_m_suppression[p] < BYTE(35))
+		if (n_m_suppression[p] >= BYTE(50) && n_m_suppression[p] < BYTE(70))
 			d_t[p] = BYTE(80);  // Weak
-		else if (n_m_suppression[p] >= BYTE(35))
+		else if (n_m_suppression[p] >= BYTE(70))
 			d_t[p] = BYTE(255); // Strong
 		else
 			d_t[p] = BYTE(0);
@@ -143,15 +142,6 @@ BYTE* Hough_Transform(BYTE* canny_image, double* edge_degrees, int w, int h) {
 
 	for (int a = 0; a < accu_size; a++)
 		accu_image[a] = (BYTE)accumulator[a];
-
-	/*
-		double max = accumulator[0];
-
-	for (int a = 0; a < accu_size; a++) 
-		if (accumulator[a] > max)
-			max = accumulator[a];
-
-	*/
 
 	return accu_image;
 }
